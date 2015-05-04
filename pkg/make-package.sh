@@ -4,47 +4,36 @@ set -e
 NAME=${NAME:=name}
 VERSION=${VERSION:=0.0.1}
 PREFIX=${PREFIX:=/usr/bin}
+BUILD_DIR=$(pwd)
 ARCH=$(uname -m)
 DATE=$(date +"%s")
 
 APP_PATH="$PREFIX"/"$VERSION"
-#BUILD=$(pwd)/"$NAME"-"$VERSION"
-#PPATH="$BUILD""$PREFIX"/"$NAME"
-
 mkdir -p "$APP_PATH"
+cp -r . "$APP_PATH"
 
-echo "git archive --format=tar --prefix=$APP_PATH/ HEAD"
-git archive --format=tar --prefix="$APP_PATH"/ HEAD | (cd "$APP_PATH" && tar xf -)
-
-pushd "$APP_PATH"
-
-echo "$pwd"
-
-ls
+cd "$APP_PATH"
 
 virtualenv env
 . env/bin/activate
-pip install -r requirements.txt
+pip install --no-index --find-links=/tmp/wheelhouse -r requirements.txt
 
-popd
+rm -rf {.gitignore,.dockerignore,pkg,.git,./*package.sh}
 
-fpm \
-    -s dir \
-    -t rpm \
-    --epoch "$DATE" \
-    -v "$VERSION" \
-    -n "$NAME" \
-    -a "$ARCH" \
-    .
+cd "$BUILD_DIR"
 
-fpm \
-    -s dir \
-    -t deb \
-    --epoch "$DATE" \
-    -v "$VERSION" \
-    -n "$NAME" \
-    -a "$ARCH" \
-    .
-
-mv ./*.rpm /dist/
-mv ./*.deb /dist/
+packages=( deb rpm )
+for i in "${packages[@]}"
+do
+    fpm \
+        -s dir \
+        -t "$i" \
+        --prefix "$APP_PATH" \
+        --epoch "$DATE" \
+        -v "$VERSION" \
+        -n "$NAME" \
+        -a "$ARCH" \
+        -C "$APP_PATH" \
+        .
+    mv ./*."$i" /dist/
+done
