@@ -1,0 +1,19 @@
+FROM python:2
+
+RUN apt-get update && apt-get install -y \
+        rpm ruby ruby-dev \
+        --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN gem install fpm
+
+RUN mkdir -p /usr/src/app
+
+WORKDIR /usr/src/app
+COPY requirements.txt /usr/src/app/
+
+COPY pkg/make-package.sh /usr/src/app/make-package.sh
+
+COPY . /usr/src/app
+
+CMD ./make-package.sh
