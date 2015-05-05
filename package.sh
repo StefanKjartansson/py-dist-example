@@ -1,16 +1,24 @@
 #!/bin/bash
 
-VERSION=2.0.0
-NAME=py-dist-example
-PREFIX=/opt/apps/"$NAME"
+PYTHON_VERSION=${PYTHON_VERSION:=2}
+VERSION=${VERSION:=0.0.1}
+NAME=${NAME:=${PWD##*/}}
+PREFIX=${PREFIX:=/opt/apps}
+DOCKER_FILE=pkg/package.py"$PYTHON_VERSION".docker
+DOCKER_IMAGE=package-"$NAME"
+
+if [ ! -f "$DOCKER_FILE" ]; then
+    echo "Dockerfile $DOCKER_FILE not found!"
+    exit 1
+fi
 
 docker build \
-    -t package-"$NAME" \
-    -f pkg/package.docker .
+    -t "$DOCKER_IMAGE" \
+    -f "$DOCKER_FILE" .
 
 docker run \
     -e NAME="$NAME" \
     -e VERSION="$VERSION" \
-    -e PREFIX="$PREFIX" \
+    -e PREFIX="$PREFIX"/"$NAME" \
     -v "$PWD"/dist:/dist \
-    package-"$NAME"
+    "$DOCKER_IMAGE"
