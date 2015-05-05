@@ -2,7 +2,7 @@
 
 PYTHON_VERSION=${PYTHON_VERSION:=2}
 VERSION=${VERSION:=0.0.1}
-NAME=${NAME:=${PWD##*/}}
+NAME=${NAME:=${PWD##*/}} # defaults to name of current directory
 PREFIX=${PREFIX:=/opt/apps}
 DOCKER_FILE=pkg/package.py"$PYTHON_VERSION".docker
 DOCKER_IMAGE=package-"$NAME"
