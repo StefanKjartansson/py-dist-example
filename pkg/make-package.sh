@@ -14,9 +14,16 @@ cp -r . "$APP_PATH"
 
 cd "$APP_PATH"
 
-virtualenv env
-. env/bin/activate
-pip install --no-index --find-links=/tmp/wheelhouse -r requirements.txt
+# support python3, virtualenv command has
+# been moved to venv module
+ret=$(python -c 'import sys; print("%i" % (sys.hexversion<0x03000000))')
+if [ "$ret" -eq 0 ]; then
+    python -m venv env
+else
+    virtualenv env
+fi
+
+./env/bin/pip install --no-index --find-links=/tmp/wheelhouse -r requirements.txt
 
 rm -rf {.gitignore,.dockerignore,pkg,.git,./*package.sh}
 
